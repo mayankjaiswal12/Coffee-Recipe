@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>The Daily Brew | Universal</title>
+    <style>
+        :root {
+            --primary: #6F4E37;
+            --secondary: #A67B5B;
+            --accent: #D4A373;
+            --bg: #F5F5F5;
+            --card-bg: #FFFFFF;
+            --text: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .status-indicator {
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+
+        /* --- FORM STYLING --- */
+        .recipe-form {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            display: grid;
+            gap: 15px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .full-width { grid-column: span 2; }
+
+        label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        #live-ratio { color: var(--secondary); font-style: italic; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; 
+            font-size: 16px; 
+            background: #fafafa;
+        }
+
+        button#save-btn {
+            grid-column: span 2;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        button#save-btn:active { transform: scale(0.98); }
+
+        /* --- RECIPE CARD STYLING --- */
+        #recipe-list { margin-top: 30px; display: grid; gap: 20px; }
+
+        .recipe-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 6px solid var(--secondary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .recipe-header { margin-bottom: 15px; padding-right: 30px; }
+
+        .recipe-title { font-size: 1.3rem; margin: 0 0 5px 0; }
+
+        .tags-container { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag { font-size: 0.75rem; padding: 4px 10px; border-radius: 15px; font-weight: bold; text-transform: uppercase; }
+        .tag.method { background: #e3f2fd; color: #1565c0; }
+        .tag.roast { background: #eee; color: #555; }
+
+        .delete-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: none; border: none; color: #ff4444;
+            font-size: 1.5rem; cursor: pointer;
+        }
+
+        /* --- STATS GRID --- */
+        .recipe-stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stat-box {
+            background: var(--bg);
+            padding: 10px 5px;
+            border-radius: 8px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .ratio-box { background-color: #fff8e1; border: 1px solid var(--accent); }
+        .stat-value { font-weight: 800; font-size: 1rem; }
+        .stat-label { font-size: 0.7rem; color: #666; margin-top: 4px; }
+
+        .recipe-remarks { font-style: italic; color: #666; border-top: 1px solid #eee; padding-top: 12px; }
+
+        @media (max-width: 600px) {
+            .recipe-form { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+            button#save-btn { grid-column: span 1; }
+            .recipe-stats { grid-template-columns: repeat(3, 1fr); }
+            .stat-box:nth-child(4), .stat-box:nth-child(5) { grid-column: span 1.5; } 
+        }
+    </style>
+</head>
+<body>
+
+    <h1>☕ The Daily Brew</h1>
+    <div class="status-indicator" id="connection-status">Connecting to Cloud...</div>
+
+    <form id="coffeeForm" class="recipe-form">
+        <div class="full-width">
+            <label for="recipeName">Recipe Name</label>
+            <input type="text" id="recipeName" placeholder="e.g., Sunday Morning Pour Over" required>
+        </div>
+
+        <div>
+            <label for="brewMethod">Brew Method</label>
+            <select id="brewMethod">
+                <option value="V60">V60</option>
+                <option value="Aeropress">Aeropress</option>
+                <option value="Inverted Aeropress">Inverted Aeropress</option>
+                <option value="French Press">French Press</option>
+                <option value="Espresso">Espresso</option>
+                <option value="Moka Pot">Moka Pot</option>
+                <option value="Chemex">Chemex</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="roastType">Roast Type</label>
+            <select id="roastType">
+                <option value="Light">Light</option>
+                <option value="Medium">Medium</option>
+                <option value="Medium Dark">Medium Dark</option>
+                <option value="Dark">Dark</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="coffeeGrams">Coffee (g)</label>
+            <input type="number" id="coffeeGrams" step="0.1" placeholder="18" required>
+        </div>
+
+        <div>
+            <label for="waterMl">Water (ml) <span id="live-ratio"></span></label>
+            <input type="number" id="waterMl" placeholder="300" required>
+        </div>
+
+        <div>
+            <label for="temp">Temp (°C)</label>
+            <input type="number" id="temp" placeholder="93" required>
+        </div>
+
+        <div>
+            <label for="time">Time</label>
+            <input type="text" id="time" placeholder="3:30" required>
+        </div>
+
+        <div class="full-width">
+            <label for="remarks">Remarks</label>
+            <textarea id="remarks" rows="2" placeholder="Tasting notes..."></textarea>
+        </div>
+
+        <button type="submit" id="save-btn">Save to Cloud</button>
+    </form>
+
+    <div id="recipe-list"></div>
+
+    <script type="module">
+        // Import Firebase Functions from the Web CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, serverTimestamp } 
+        from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        // Replace the section below with the object you copied from Firebase Console
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-YOUR-API-KEY-HERE",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456:web:abcdef"
+        };
+        // ---------------------------------------
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const dbCollection = "recipes"; // Name of your database table
+
+        // UI References
+        const form = document.getElementById('coffeeForm');
+        const list = document.getElementById('recipe-list');
+        const status = document.getElementById('connection-status');
+        const coffeeInput = document.getElementById('coffeeGrams');
+        const waterInput = document.getElementById('waterMl');
+        const ratioDisplay = document.getElementById('live-ratio');
+
+        // 1. REAL-TIME LISTENER (This makes it universal!)
+        // Instead of manually getting recipes, we "listen" for changes in the cloud.
+        const q = query(collection(db, dbCollection), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            status.textContent = "☁️ Universal Sync Active";
+            status.style.color = "green";
+            list.innerHTML = ""; // Clear list
+            
+            snapshot.forEach((doc) => {
+                renderRecipe(doc.id, doc.data());
+            });
+        }, (error) => {
+            status.textContent = "⚠️ Error connecting to database";
+            console.error(error);
+        });
+
+        // 2. SAVE RECIPE TO CLOUD
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('save-btn');
+            submitBtn.textContent = "Saving...";
+            submitBtn.disabled = true;
+
+            try {
+                await addDoc(collection(db, dbCollection), {
+                    name: document.getElementById('recipeName').value,
+                    method: document.getElementById('brewMethod').value,
+                    roast: document.getElementById('roastType').value,
+                    coffee: Number(document.getElementById('coffeeGrams').value),
+                    water: Number(document.getElementById('waterMl').value),
+                    temp: Number(document.getElementById('temp').value),
+                    time: document.getElementById('time').value,
+                    remarks: document.getElementById('remarks').value,
+                    timestamp: serverTimestamp() // Uses server time for perfect sorting
+                });
+                form.reset();
+                ratioDisplay.textContent = '';
+            } catch (e) {
+                alert("Error saving: " + e.message);
+            } finally {
+                submitBtn.textContent = "Save to Cloud";
+                submitBtn.disabled = false;
+            }
+        });
+
+        // 3. DELETE FROM CLOUD
+        window.deleteRecipe = async function(id) {
+            if(confirm('Delete this recipe permanently?')) {
+                await deleteDoc(doc(db, dbCollection, id));
+            }
+        }
+
+        // 4. RENDER FUNCTION
+        function renderRecipe(id, r) {
+            const ratio = (r.water / r.coffee).toFixed(1);
+            const card = document.createElement('div');
+            card.className = 'recipe-card';
+            card.innerHTML = `
+                <div class="recipe-header">
+                    <h3 class="recipe-title">${r.name}</h3>
+                    <div class="tags-container">
+                        <span class="tag method">${r.method}</span>
+                        <span class="tag roast">${r.roast}</span>
+                    </div>
+                </div>
+                <button class="delete-btn" onclick="deleteRecipe('${id}')">×</button>
+                <div class="recipe-stats">
+                    <div class="stat-box"><span class="stat-value">${r.coffee}g</span><span class="stat-label">Coffee</span></div>
+                    <div class="stat-box"><span class="stat-value">${r.water}ml</span><span class="stat-label">Water</span></div>
+                    <div class="stat-box ratio-box"><span class="stat-value">1:${ratio}</span><span class="stat-label">Ratio</span></div>
+                    <div class="stat-box"><span class="stat-value">${r.temp}°</span><span class="stat-label">Temp</span></div>
+                    <div class="stat-box"><span class="stat-value">${r.time}</span><span class="stat-label">Time</span></div>
+                </div>
+                <div class="recipe-remarks">"${r.remarks}"</div>
+            `;
+            list.appendChild(card);
+        }
+
+        // Ratio Helper
+        function updateRatio() {
+            const c = parseFloat(coffeeInput.value);
+            const w = parseFloat(waterInput.value);
+            if (c > 0 && w > 0) ratioDisplay.textContent = `(1:${(w / c).toFixed(1)})`;
+            else ratioDisplay.textContent = '';
+        }
+        coffeeInput.addEventListener('input', updateRatio);
+        waterInput.addEventListener('input', updateRatio);
+    </script>
+</body>
+</html>
