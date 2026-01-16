@@ -1,93 +1,98 @@
-# Coffee-Recipe
-A serverless Progressive Web Application (PWA) designed to track and standardize coffee brewing variables. The application solves the problem of inconsistent brewing by logging precise metrics such as coffee dosage, water weight, temperature, and immersion time.
+# ☕ The Daily Brew | Universal Coffee Recipe Keeper
 
-Markdown
+**The Daily Brew** is a minimalist, cloud-synced web application designed to track, refine, and standardize your coffee brewing recipes.
 
-# ☕ The Daily Brew | Universal Recipe Keeper
+Unlike static note-taking apps, this project is a **Universal PWA (Progressive Web App)**. It runs on any device (iOS, Android, Desktop), installs to your home screen, and syncs your recipes instantly across all devices using a personal Google Firebase database.
 
-A minimal, cloud-synced web application for tracking and refining coffee recipes. Built with a focus on simplicity, this app runs universally on any device (iOS, Android, Desktop) and syncs data instantly using Google Firestore.
-
-![Status](https://img.shields.io/badge/status-active-success.svg)
+![Project Status](https://img.shields.io/badge/status-live-success.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Universal%20Web-orange)
+![Stack](https://img.shields.io/badge/backend-Firebase-orange)
 
-## ✨ Key Features
+## ✨ Features
 
-* **☁️ Universal Cloud Sync:** Add a recipe on your iPhone, and it instantly appears on your laptop. Powered by Google Firebase (Free Tier).
-* **📱 Native App Feel:** Designed with iOS meta tags to hide browser bars and function like a native app when added to the Home Screen.
-* **⚖️ Smart Ratio Calculator:** Automatically calculates the Coffee-to-Water ratio (e.g., 1:16.5) in real-time as you type.
-* **⚙️ Equipment Manager:** Built-in support for V60, Aeropress, etc., plus a simplified UI for logging grind size, temp, and time.
-* **💸 Zero Cost:** Uses the Firebase "Spark" plan, allowing for storage of millions of recipes for free without a credit card.
+* **☁️ Universal Cloud Sync:** Write a recipe on your iPhone in the kitchen; see it instantly on your Laptop.
+* **📱 Native App Experience:** Optimized for iOS/Android. Add it to your Home Screen to remove browser bars and run it full-screen.
+* **⚖️ Live Ratio Calculator:** Automatically calculates the Coffee-to-Water ratio (e.g., `1:16.5`) in real-time as you input grams.
+* **⚙️ Equipment Manager:** Built-in support for V60, Aeropress, French Press, etc., with options to add custom brew methods.
+* **🛡️ Secure & Private:** You own your data. It lives in your personal Firebase instance, not on a shared public server.
+* **💸 Zero Cost:** Architected to run entirely on the GitHub Pages free tier and Firebase Spark (Free) plan.
+
+---
+
+## 🚀 How to Setup Your Own (The "Fork" Method)
+
+Because this app uses a private database, you cannot just "use" my link to store your personal recipes. You need to create your own instance.
+
+**Follow these 4 steps to deploy your own personal version in under 10 minutes.**
+
+### Step 1: Fork the Repository
+1.  Look at the top-right corner of this page.
+2.  Click the **Fork** button.
+3.  This creates an exact copy of the code in your own GitHub account.
+
+### Step 2: Create Your Database (Firebase)
+1.  Go to the [Firebase Console](https://console.firebase.google.com/) and log in with your Google account.
+2.  Click **Add project** and give it a name (e.g., `my-coffee-app`).
+3.  **Disable Google Analytics** (you don't need it) and click **Create Project**.
+4.  **Create the Database:**
+    * On the left sidebar, go to **Build** → **Firestore Database**.
+    * Click **Create Database**.
+    * Select **Start in Test Mode** (this is easiest for setup).
+    * Choose a location near you (e.g., `asia-south1` or `us-central`).
+    * Click **Enable**.
+
+### Step 3: Connect the Code
+1.  **Get your Keys:**
+    * In Firebase, click the **Gear Icon ⚙️** (Project Settings).
+    * Scroll down to "Your apps" and click the **Web (`</>`)** icon.
+    * Register the app (name it "Daily Brew").
+    * Copy the `firebaseConfig` object (the code inside `const firebaseConfig = { ... }`).
+2.  **Paste into GitHub:**
+    * Go to your forked GitHub repository.
+    * Open the `index.html` file and click the **Pencil Icon (Edit)**.
+    * Scroll down to around line 170 where it says `// --- PASTE YOUR FIREBASE CONFIG HERE ---`.
+    * Replace the placeholder config with your own code.
+    * Click **Commit changes**.
+
+### Step 4: Go Live!
+1.  In your GitHub repository, click **Settings** (top menu).
+2.  On the left sidebar, click **Pages**.
+3.  Under **Branch**, select `main` (or `master`) and click **Save**.
+4.  Wait 60 seconds and refresh the page. You will see your live URL (e.g., `https://yourname.github.io/Coffee-Recipe/`).
+
+---
+
+## 🔒 Security Best Practices
+
+Since your API key is visible in the code, you should lock it to your website to prevent others from using your quota.
+
+1.  Go to [Google Cloud Credentials](https://console.cloud.google.com/apis/credentials).
+2.  Select your project.
+3.  Click the **Edit (Pencil)** icon next to your Browser Key.
+4.  Under **Application restrictions**, choose **Websites**.
+5.  Add your URL: `https://yourname.github.io/*`.
+6.  Click **Save**.
+
+Now, your key will only work when the app is opened from your specific website.
+
+---
+
+## 📱 Installation on iPhone / Android
+
+To get the full app experience:
+
+1.  Open your new website link in **Safari** (iOS) or **Chrome** (Android).
+2.  Tap the **Share** button (iOS) or **Menu** dots (Android).
+3.  Select **"Add to Home Screen"**.
+4.  Launch the app from the new icon on your home screen.
+
+---
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** Vanilla HTML5, CSS3 (Grid/Flexbox), JavaScript (ES6 Modules).
-* **Backend / Database:** Google Firebase (Firestore NoSQL).
-* **Hosting:** Static HTML hosting (Netlify / Tiiny / GitHub Pages).
+* **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6 Modules).
+* **Database:** Google Cloud Firestore (NoSQL).
+* **Hosting:** GitHub Pages.
 
-## 🚀 Setup Instructions
-
-### 1. Clone the Repository
-```bash
-git clone [https://github.com/mayankjaiswal12/daily-brew.git](https://github.com/mayankjaiswal12/daily-brew.git)
-cd daily-brew
-2. Firebase Configuration
-This app requires a Firebase project to store data.
-
-Go to Firebase Console and create a new project.
-
-Navigate to Build > Firestore Database and create a database in Test Mode.
-
-Go to Project Settings, scroll down, and register a Web App.
-
-Copy your firebaseConfig object.
-
-3. Connect Your Database
-Open index.html and locate the config section:
-
-JavaScript
-
-// REPLACE THIS WITH YOUR OWN CONFIG
-const firebaseConfig = {
-    apiKey: "AIzaSyD-YOUR-API-KEY",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    // ...
-};
-4. Deploy
-Since this is a static file, you can deploy it anywhere:
-
-GitHub Pages: Go to Repo Settings > Pages > Source: Main.
-
-Netlify Drop: Drag and drop the folder.
-
-📱 iPhone / iOS Installation
-For the best experience:
-
-Visit your deployed URL in Safari.
-
-Tap the Share button.
-
-Select "Add to Home Screen".
-
-The app will launch full-screen without browser UI.
-
-🔒 Privacy & Data
-Data Location: All recipes are stored in your private Google Firestore database.
-
-Cost: The project runs on the Firebase Free Tier, which allows for 40,000 reads/writes per day (effectively free for personal use).
-
-🤝 Contributing
-Contributions are welcome!
-
-Fork the project.
-
-Create your feature branch (git checkout -b feature/NewBrewMethod).
-
-Commit your changes.
-
-Push to the branch.
-
-Open a Pull Request.
-
+---
 Maintained by Mayank Jaiswal
