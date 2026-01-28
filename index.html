@@ -4,394 +4,414 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>The Daily Brew</title>
     <style>
         :root {
-            --primary: #6F4E37;
-            --secondary: #A67B5B;
-            --accent: #D4A373;
-            --bg: #F5F5F5;
-            --card-bg: #FFFFFF;
-            --text: #333333;
+            --bg: #F9F9F9;
+            --surface: #FFFFFF;
+            --text: #333;
+            --border: #E0E0E0;
+            --primary: #333;
+            --accent-blue: #A2D2FF;
+            --accent-red: #FFAAA5;
+            --accent-yellow: #FFD3B6;
+            --accent-green: #CaffBF;
+            --accent-purple: #E0C3FC;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            max-width: 800px;
+            margin: 0;
+            padding: 20px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            -webkit-tap-highlight-color: transparent;
         }
 
-        h1 {
-            text-align: center;
-            color: var(--primary);
-            border-bottom: 2px solid var(--secondary);
-            padding-bottom: 10px;
-            font-size: 1.8rem;
+        /* --- LAYOUT --- */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            align-items: start;
         }
         
-        .status-indicator {
-            text-align: center;
-            font-size: 0.8rem;
-            margin-top: -10px;
+        /* Library Section (New) */
+        .library-container {
+            margin-top: 40px;
+            border-top: 2px solid var(--border);
+            padding-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container { grid-template-columns: 1fr; } 
+        }
+
+        h1, h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 20px 0; }
+        h2 { font-size: 1.3rem; margin-bottom: 15px; }
+        .logo-icon { font-size: 1.5rem; }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 20px;
-            color: var(--secondary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
-        /* --- FORM STYLING --- */
-        .recipe-form {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            display: grid;
-            gap: 15px;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .full-width { grid-column: span 2; }
-
-        label {
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            color: var(--primary);
-        }
-
-        #live-ratio { color: var(--secondary); font-style: italic; }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; 
-            font-size: 16px; 
-            background: #fafafa;
-        }
-        
-        button#save-btn {
-            grid-column: span 2;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 16px;
+        .card-header {
+            font-weight: 700;
             font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        
-        button#save-btn:active { transform: scale(0.98); }
-
-        /* --- RECIPE CARD STYLING --- */
-        #recipe-list { margin-top: 30px; display: grid; gap: 20px; }
-
-        .recipe-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 6px solid var(--secondary);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            position: relative;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .recipe-header { margin-bottom: 15px; padding-right: 30px; }
-
-        .recipe-title { font-size: 1.3rem; margin: 0 0 4px 0; color: var(--primary); }
-        
-        .bean-info { 
-            font-size: 0.95rem; 
-            color: #444; 
-            font-weight: 600; 
-            margin-bottom: 8px; 
-            display: block;
-        }
-        
-        .roaster-info {
-            font-weight: 400;
-            color: #888;
-            font-size: 0.9rem;
-        }
-
-        .tags-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;}
-        .tag { font-size: 0.75rem; padding: 4px 10px; border-radius: 15px; font-weight: bold; text-transform: uppercase; }
-        .tag.method { background: #e3f2fd; color: #1565c0; }
-        .tag.process { background: #fff3e0; color: #ef6c00; }
-        .tag.roast { background: #eee; color: #555; }
-
-        .delete-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: none; border: none; color: #ff4444;
-            font-size: 1.5rem; cursor: pointer;
-        }
-
-        /* --- STATS GRID --- */
-        .recipe-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
             margin-bottom: 15px;
-            text-align: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
         }
 
-        .stat-box {
-            background: var(--bg);
-            padding: 10px 5px;
-            border-radius: 8px;
-            display: flex; flex-direction: column; justify-content: center;
-        }
-        .ratio-box { background-color: #fff8e1; border: 1px solid var(--accent); }
-        .stat-value { font-weight: 800; font-size: 1rem; }
-        .stat-label { font-size: 0.7rem; color: #666; margin-top: 4px; }
+        /* --- FORMS --- */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
 
-        .recipe-remarks { font-style: italic; color: #666; border-top: 1px solid #eee; padding-top: 12px; }
-
-        @media (max-width: 600px) {
-            .recipe-form { grid-template-columns: 1fr; }
-            .full-width { grid-column: span 1; }
-            button#save-btn { grid-column: span 1; }
-            .recipe-stats { grid-template-columns: repeat(3, 1fr); }
+        label { display: block; font-size: 0.75rem; font-weight: 600; color: #666; margin-bottom: 5px; }
+        input, select, textarea {
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 6px; font-size: 0.9rem; background: #FAFAFA; box-sizing: border-box;
         }
+        
+        /* --- BUTTONS --- */
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 6px; }
+        #add-step-btn { width: 100%; background: #333; color: white; padding: 12px; margin-top: 15px; }
+        #save-recipe-btn { background: #FF4444; color: white; padding: 10px 20px; border-radius: 20px; float: right; }
+        
+        /* --- TIMELINE (Shared Style) --- */
+        .step-list { display: flex; flex-direction: column; gap: 10px; }
+        .timeline-item {
+            display: flex; background: white; border: 1px solid var(--border);
+            border-radius: 8px; overflow: hidden; position: relative;
+        }
+        .color-bar { width: 12px; flex-shrink: 0; }
+        .timeline-content { padding: 12px 15px; flex-grow: 1; }
+        .step-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .step-title { font-weight: 700; font-size: 0.95rem; }
+        .step-type { font-size: 0.7rem; color: #888; text-transform: uppercase; font-style: italic; }
+        .step-time { font-family: monospace; font-size: 1.1rem; font-weight: 600; color: #333; }
+        .step-details { font-size: 0.85rem; color: #555; margin-top: 4px; }
+        .delete-step { background: none; color: #ccc; font-size: 1.2rem; padding: 0 15px; }
+        .delete-step:hover { color: red; }
+
+        /* --- LIBRARY STYLES (New) --- */
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .saved-recipe-card {
+            background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+            transition: transform 0.2s; position: relative;
+        }
+        .saved-recipe-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .saved-header h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
+        .saved-meta { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        .saved-tags { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+        .tag { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; background: #eee; font-weight: 600; }
+        
+        .view-btn { width: 100%; background: #333; color: white; padding: 8px; margin-top: 10px; }
+        .delete-recipe-btn { 
+            position: absolute; top: 15px; right: 15px; background: none; 
+            color: #ff4444; font-size: 1.2rem; padding: 0; 
+        }
+
+        /* Helpers */
+        .bg-yellow { background-color: #FCDF87; }
+        .bg-blue { background-color: #B2DFDB; }
+        .bg-red { background-color: #FFCDD2; }
+        .bg-purple { background-color: #E1BEE7; }
+        .bg-gray { background-color: #EEEEEE; }
+        .bg-brown { background-color: #D7CCC8; }
+        .selected { transform: scale(1.1); border: 2px solid #333; }
+        .color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-picker { display: flex; gap: 10px; margin-top: 5px; }
+
     </style>
 </head>
 <body>
 
-    <h1>☕ The Daily Brew</h1>
-    <div class="status-indicator" id="connection-status">Connecting to Cloud...</div>
+    <header>
+        <h1>
+            <span class="logo-icon">☕</span> Recipe Builder 
+            <button id="save-recipe-btn">Save Recipe</button>
+        </h1>
+    </header>
 
-    <form id="coffeeForm" class="recipe-form">
-        <div class="full-width">
-            <label for="recipeName">Recipe Title</label>
-            <input type="text" id="recipeName" placeholder="e.g., Sunday Morning V60" required>
+    <div class="main-container">
+        
+        <div class="left-col">
+            <div class="card">
+                <div class="card-header">Details</div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label>Bean Name / Origin</label>
+                    <input type="text" id="beanName" placeholder="e.g. Ethiopia Yirgacheffe">
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label>Recipe Name</label>
+                        <input type="text" id="recipeName" placeholder="e.g. Morning Brew">
+                    </div>
+                    <div>
+                        <label>Method</label>
+                        <input type="text" id="brewer" list="methodSuggestions" placeholder="Select or type..." required>
+                        <datalist id="methodSuggestions">
+                            <option value="V60"></option>
+                            <option value="Aeropress"></option>
+                            <option value="French Press"></option>
+                            <option value="Espresso"></option>
+                            <option value="Moka Pot"></option>
+                            <option value="Chemex"></option>
+                            <option value="Siphon"></option>
+                            <option value="Cold Brew"></option>
+                        </datalist>
+                    </div>
+                </div>
+                <br>
+                <div class="grid-3">
+                    <div><label>Coffee (g)</label><input type="number" id="coffeeGrams" value="15" oninput="calcRatio()"></div>
+                    <div><label>Water (g)</label><input type="number" id="waterGrams" value="255" oninput="calcRatio()"></div>
+                    <div><label>Temp (°C)</label><input type="number" id="temp" value="94"></div>
+                </div>
+                <br>
+                <div class="grid-2">
+                    <div><label>Ratio 1 :</label><input type="text" id="ratioDisplay" readonly style="background:#eee; color:#666;"></div>
+                    <div><label>Grind</label><input type="text" id="grindSize" placeholder="e.g. K-Max 6.2"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Add Step</div>
+                <div class="grid-2">
+                    <div>
+                        <label>Type</label>
+                        <select id="stepType">
+                            <option value="Pour">Pour</option><option value="Bloom">Bloom</option>
+                            <option value="Agitate">Agitate</option><option value="Wait">Wait</option>
+                            <option value="Drawdown">Drawdown</option><option value="Prep">Prep</option>
+                        </select>
+                    </div>
+                    <div><label>Label</label><input type="text" id="stepLabel" placeholder="Step Name"></div>
+                </div>
+                <br>
+                <label>Color</label>
+                <div class="color-picker" id="colorPicker">
+                    <div class="color-dot bg-blue selected" data-color="bg-blue"></div>
+                    <div class="color-dot bg-yellow" data-color="bg-yellow"></div>
+                    <div class="color-dot bg-red" data-color="bg-red"></div>
+                    <div class="color-dot bg-purple" data-color="bg-purple"></div>
+                    <div class="color-dot bg-brown" data-color="bg-brown"></div>
+                </div>
+                <br>
+                <div class="grid-2">
+                    <div>
+                        <label>Start (m:s)</label>
+                        <div style="display:flex; gap:5px;"><input type="number" id="startMin" placeholder="0"><input type="number" id="startSec" placeholder="00"></div>
+                    </div>
+                    <div>
+                        <label>End (m:s)</label>
+                        <div style="display:flex; gap:5px;"><input type="number" id="endMin" placeholder="0"><input type="number" id="endSec" placeholder="00"></div>
+                    </div>
+                </div>
+                <br>
+                <label>Target Weight</label><input type="number" id="stepWeight" placeholder="Optional (g)">
+                <br><br>
+                <label>Notes</label><textarea id="stepNotes" rows="1" cols="50"></textarea>
+                <button id="add-step-btn">Add Step</button>
+            </div>
         </div>
 
-        <div>
-            <label for="beanName">Bean Name </label>
-            <input type="text" id="beanName" placeholder="e.g., Riverdale Estate">
+        <div class="right-col">
+            <div class="card" style="min-height: 500px;">
+                <div class="card-header">Current Build</div>
+                <div id="timeline-container" class="step-list">
+                    <div style="text-align:center; color:#ccc; margin-top:50px;" id="empty-state">No steps added.</div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div>
-            <label for="roasterName">Roaster</label>
-            <input type="text" id="roasterName" placeholder="e.g., Blue Tokai">
+    <div class="library-container">
+        <h2>Recipe Library</h2>
+        <div id="library-grid" class="library-grid">
+            <div style="color:#666;">Loading recipes...</div>
         </div>
-
-        <div>
-            <label for="processInput">Process</label>
-            <input type="text" id="processInput" list="processSuggestions" placeholder="select or type">
-            <datalist id="processSuggestions">
-                <option value="Washed"></option>
-                <option value="Natural"></option>
-                <option value="Honey"></option>
-                <option value="Anaerobic"></option>
-                <option value="Monsoon"></option>
-            </datalist>
-        </div>
-
-        <div>
-            <label for="roastType">Roast Level</label>
-            <select id="roastType">
-                <option value="Light">Light</option>
-                <option value="Medium">Medium</option>
-                <option value="Medium Dark">Medium Dark</option>
-                <option value="Dark">Dark</option>
-            </select>
-        </div>
-
-        <div class="full-width" style="border-top: 1px solid #eee; margin: 5px 0;"></div>
-
-        <div>
-            <label for="brewMethod">Method</label>
-            <select id="brewMethod">
-                <option value="V60">V60</option>
-                <option value="Aeropress">Aeropress</option>
-                <option value="Inverted Aeropress">Inverted Aeropress</option>
-                <option value="French Press">French Press</option>
-                <option value="Espresso">Espresso</option>
-                <option value="Moka Pot">Moka Pot</option>
-                <option value="Chemex">Chemex</option>
-            </select>
-        </div>
-
-        <div>
-            <label for="grindSize">Grind Size</label>
-            <input type="text" id="grindSize" placeholder="e.g. 15 Clicks">
-        </div>
-
-        <div>
-            <label for="coffeeGrams">Coffee (g)</label>
-            <input type="number" id="coffeeGrams" step="0.1" placeholder="18" required>
-        </div>
-
-        <div>
-            <label for="waterMl">Water (ml) <span id="live-ratio"></span></label>
-            <input type="number" id="waterMl" placeholder="300" required>
-        </div>
-
-        <div>
-            <label for="temp">Temp (°C)</label>
-            <input type="number" id="temp" placeholder="93" required>
-        </div>
-
-        <div>
-            <label for="time">Time</label>
-            <input type="text" id="time" placeholder="3:30" required>
-        </div>
-
-        <div class="full-width">
-            <label for="remarks">Remarks</label>
-            <textarea id="remarks" rows="2" placeholder="Tasting notes..."></textarea>
-        </div>
-
-        <button type="submit" id="save-btn">Save to Cloud</button>
-    </form>
-
-    <div id="recipe-list"></div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, serverTimestamp } 
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        // CONFIG
         const firebaseConfig = {
-            // ... Paste your config here exactly like before ...
-            apiKey: "AIzaSyD-YOUR-API-KEY", 
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456:web:abcdef"
+            apiKey: "AIzaSyDfoHyPtp40_L0juyXaP-4h1FxubHXb87Y",
+            authDomain: "coffee-database-92533.firebaseapp.com",
+            projectId: "coffee-database-92533",
+            storageBucket: "coffee-database-92533.firebasestorage.app",
+            messagingSenderId: "788577377347",
+            appId: "1:788577377347:web:3ed7f39df2bfb7828348f6"
         };
-        // ---------------------------------------
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const dbCollection = "recipes"; 
 
-        const form = document.getElementById('coffeeForm');
-        const list = document.getElementById('recipe-list');
-        const status = document.getElementById('connection-status');
-        const coffeeInput = document.getElementById('coffeeGrams');
-        const waterInput = document.getElementById('waterMl');
-        const ratioDisplay = document.getElementById('live-ratio');
+        // --- BUILDER LOGIC ---
+        let steps = [];
+        let selectedColor = 'bg-blue';
 
-        // 1. LISTENER
-        const q = query(collection(db, dbCollection), orderBy("timestamp", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
-            status.textContent = "☁️ Universal Sync Active";
-            status.style.color = "green";
-            list.innerHTML = ""; 
-            snapshot.forEach((doc) => {
-                renderRecipe(doc.id, doc.data());
+        window.calcRatio = function() {
+            const c = parseFloat(document.getElementById('coffeeGrams').value) || 0;
+            const w = parseFloat(document.getElementById('waterGrams').value) || 0;
+            const box = document.getElementById('ratioDisplay');
+            box.value = (c > 0 && w > 0) ? (w / c).toFixed(1) : "-";
+        }
+        calcRatio();
+
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.addEventListener('click', function() {
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedColor = this.getAttribute('data-color');
             });
-        }, (error) => {
-            status.textContent = "⚠️ Error connecting. Check Config.";
-            console.error(error);
         });
 
-        // 2. SAVE
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('save-btn');
-            submitBtn.textContent = "Saving...";
-            submitBtn.disabled = true;
+        document.getElementById('add-step-btn').addEventListener('click', function() {
+            const sMin = document.getElementById('startMin').value || 0;
+            const sSec = document.getElementById('startSec').value || 0;
+            const eMin = document.getElementById('endMin').value || 0;
+            const eSec = document.getElementById('endSec').value || 0;
+            const timeStr = `${sMin}:${sSec.toString().padStart(2,'0')} → ${eMin}:${eSec.toString().padStart(2,'0')}`;
 
+            const newStep = {
+                id: Date.now(),
+                type: document.getElementById('stepType').value,
+                label: document.getElementById('stepLabel').value || document.getElementById('stepType').value,
+                color: selectedColor,
+                timeDisplay: timeStr,
+                weight: document.getElementById('stepWeight').value ? ` · ${document.getElementById('stepWeight').value}g` : '',
+                notes: document.getElementById('stepNotes').value
+            };
+            steps.push(newStep);
+            renderBuilder();
+        });
+
+        function renderBuilder() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+            steps.forEach((step, index) => {
+                container.innerHTML += `
+                    <div class="timeline-item">
+                        <div class="color-bar ${step.color}"></div>
+                        <div class="timeline-content">
+                            <div class="step-header"><span class="step-title">${step.label}</span></div>
+                            <div class="step-time">${step.timeDisplay} ${step.weight}</div>
+                            <div class="step-details">${step.notes}</div>
+                        </div>
+                        <button class="delete-step" onclick="removeStep(${index})">×</button>
+                    </div>`;
+            });
+        }
+        window.removeStep = (idx) => { steps.splice(idx, 1); renderBuilder(); };
+
+        // --- SAVE LOGIC ---
+        document.getElementById('save-recipe-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('save-recipe-btn');
+            btn.textContent = "Saving...";
+            
+            const recipeData = {
+                name: document.getElementById('recipeName').value || "Untitled",
+                bean: document.getElementById('beanName').value || "",
+                brewer: document.getElementById('brewer').value,
+                coffee: Number(document.getElementById('coffeeGrams').value),
+                water: Number(document.getElementById('waterGrams').value),
+                temp: Number(document.getElementById('temp').value),
+                grind: document.getElementById('grindSize').value,
+                steps: steps,
+                timestamp: serverTimestamp()
+            };
             try {
-                await addDoc(collection(db, dbCollection), {
-                    name: document.getElementById('recipeName').value,
-                    // Use || "" to ensure we save an empty string if blank
-                    bean: document.getElementById('beanName').value || "", 
-                    roaster: document.getElementById('roasterName').value || "", 
-                    process: document.getElementById('processInput').value || "",
-                    
-                    method: document.getElementById('brewMethod').value,
-                    grind: document.getElementById('grindSize').value || "-",
-                    roast: document.getElementById('roastType').value,
-                    coffee: Number(document.getElementById('coffeeGrams').value),
-                    water: Number(document.getElementById('waterMl').value),
-                    temp: Number(document.getElementById('temp').value),
-                    time: document.getElementById('time').value,
-                    remarks: document.getElementById('remarks').value,
-                    timestamp: serverTimestamp()
-                });
+                await addDoc(collection(db, "recipes"), recipeData);
+                btn.textContent = "Saved!";
+                setTimeout(() => btn.textContent = "Save Recipe", 2000);
                 
-                form.reset();
-                ratioDisplay.textContent = '';
-            } catch (e) {
-                alert("Error saving: " + e.message);
-            } finally {
-                submitBtn.textContent = "Save to Cloud";
-                submitBtn.disabled = false;
+                // ➕ ADD THESE LINES TO CLEAR THE FORM:
+                document.getElementById('recipeName').value = "";
+                document.getElementById('beanName').value = "";
+                document.getElementById('brewer').value = ""; // Clears the Method
+                document.getElementById('stepNotes').value = "";
+                
+                // ➕ Reset Steps for the next recipe
+                steps = []; 
+                renderBuilder(); 
+
+            } catch(e) {
+                alert("Save Error: " + e.message);
+                btn.textContent = "Save Recipe";
             }
         });
 
-        // 3. DELETE
-        window.deleteRecipe = async function(id) {
-            if(confirm('Delete this recipe permanently?')) {
-                await deleteDoc(doc(db, dbCollection, id));
-            }
-        }
+        // --- LIBRARY LOGIC (VIEWER) ---
+        const q = query(collection(db, "recipes"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const grid = document.getElementById('library-grid');
+            grid.innerHTML = "";
+            snapshot.forEach(doc => {
+                const r = doc.data();
+                const ratio = (r.water / r.coffee).toFixed(1);
+                
+                // Build Steps HTML for the card
+                let stepsHtml = "";
+                if(r.steps && Array.isArray(r.steps)) {
+                    r.steps.forEach(s => {
+                        stepsHtml += `
+                            <div class="timeline-item" style="margin-bottom:5px; padding:0;">
+                                <div class="color-bar ${s.color}" style="width:5px;"></div>
+                                <div class="timeline-content" style="padding:8px;">
+                                    <div style="font-weight:bold; font-size:0.8rem;">${s.label}</div>
+                                    <div style="font-size:0.75rem; font-family:monospace;">${s.timeDisplay}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
 
-        // 4. RENDER
-        function renderRecipe(id, r) {
-            const ratio = (r.water / r.coffee).toFixed(1);
-            
-            const beanName = r.bean || "";
-            // Only show "by Roaster" if roaster exists
-            const roaster = r.roaster ? ` <span class="roaster-info">by ${r.roaster}</span>` : "";
-            
-            // Logic to HIDE the process tag if it's empty
-            const processTag = r.process ? `<span class="tag process">${r.process}</span>` : "";
-            
-            const grind = r.grind || "-";
-
-            const card = document.createElement('div');
-            card.className = 'recipe-card';
-            card.innerHTML = `
-                <div class="recipe-header">
-                    <h3 class="recipe-title">${r.name}</h3>
-                    <span class="bean-info">${beanName}${roaster}</span>
-                    <div class="tags-container">
-                        <span class="tag method">${r.method}</span>
-                        ${processTag} <span class="tag roast">${r.roast}</span>
+                const card = document.createElement('div');
+                card.className = "saved-recipe-card";
+                card.innerHTML = `
+                    <div class="saved-header">
+                        <h3>${r.name}</h3>
+                        <div class="saved-meta">${r.bean}</div>
+                        <button class="delete-recipe-btn" onclick="deleteRecipe('${doc.id}')">×</button>
                     </div>
-                </div>
-                <button class="delete-btn" onclick="deleteRecipe('${id}')">×</button>
-                
-                <div class="recipe-stats">
-                    <div class="stat-box"><span class="stat-value">${r.coffee}g</span><span class="stat-label">Coffee</span></div>
-                    <div class="stat-box"><span class="stat-value">${r.water}ml</span><span class="stat-label">Water</span></div>
-                    <div class="stat-box ratio-box"><span class="stat-value">1:${ratio}</span><span class="stat-label">Ratio</span></div>
-                    <div class="stat-box"><span class="stat-value">${r.temp}°</span><span class="stat-label">Temp</span></div>
-                    <div class="stat-box"><span class="stat-value">${r.time}</span><span class="stat-label">Time</span></div>
-                    <div class="stat-box"><span class="stat-value" style="font-size:0.8rem">${grind}</span><span class="stat-label">Grind</span></div>
-                </div>
-                
-                <div class="recipe-remarks">"${r.remarks}"</div>
-            `;
-            list.appendChild(card);
-        }
+                    <div class="saved-tags">
+                        <span class="tag">${r.brewer}</span>
+                        <span class="tag">1:${ratio}</span>
+                        <span class="tag">${r.coffee}g In</span>
+                    </div>
+                    <div style="max-height:200px; overflow-y:auto; border-top:1px solid #eee; padding-top:10px;">
+                        ${stepsHtml || "<small>No steps recorded</small>"}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        });
 
-        function updateRatio() {
-            const c = parseFloat(coffeeInput.value);
-            const w = parseFloat(waterInput.value);
-            if (c > 0 && w > 0) ratioDisplay.textContent = `(1:${(w / c).toFixed(1)})`;
-            else ratioDisplay.textContent = '';
-        }
-        coffeeInput.addEventListener('input', updateRatio);
-        waterInput.addEventListener('input', updateRatio);
+        window.deleteRecipe = async (id) => {
+            if(confirm("Delete this recipe permanently?")) {
+                await deleteDoc(doc(db, "recipes", id));
+            }
+        };
+
     </script>
 </body>
 </html>
