@@ -96,7 +96,7 @@ service cloud.firestore {
     }
   }
 }
-```ß
+```
 🔒 Final Step: API Key Lockdown
 To prevent others from using your database quota, lock your API key to your Netlify site.
 
