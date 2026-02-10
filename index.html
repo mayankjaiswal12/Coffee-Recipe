@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>The Daily Brew</title>
+    <title>The Daily Brew | V13 Pro Editor</title>
     <style>
         :root {
             --bg: #F9F9F9;
@@ -15,8 +15,8 @@
             --accent-blue: #A2D2FF;
             --accent-red: #FFAAA5;
             --accent-yellow: #FFD3B6;
-            --accent-green: #CaffBF;
             --accent-purple: #E0C3FC;
+            --accent-brown: #D7CCC8;
         }
 
         body {
@@ -53,6 +53,13 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            transition: border-color 0.2s;
+        }
+        
+        /* Highlight the Step Form when editing a specific step */
+        .step-edit-active {
+            border: 2px solid #333 !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .card-header {
@@ -61,6 +68,7 @@
             margin-bottom: 15px;
             border-bottom: 1px solid var(--border);
             padding-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
         /* --- FORMS --- */
@@ -75,10 +83,19 @@
         
         /* --- BUTTONS --- */
         button { cursor: pointer; border: none; font-weight: bold; border-radius: 6px; }
-        #add-step-btn { width: 100%; background: #333; color: white; padding: 12px; margin-top: 15px; }
-        #save-recipe-btn { background: #FF4444; color: white; padding: 10px 20px; border-radius: 20px; float: right; }
         
-        /* --- TIMELINE (Shared Style) --- */
+        #add-step-btn { width: 100%; background: #333; color: white; padding: 12px; margin-top: 15px; transition: background 0.2s; }
+        #add-step-btn.updating { background: #4CAF50; } /* Green when updating */
+        
+        #cancel-step-edit { 
+            background: none; color: #888; text-decoration: underline; font-size: 0.8rem; 
+            cursor: pointer; display: none; /* Hidden by default */
+        }
+
+        #save-recipe-btn { background: #FF4444; color: white; padding: 10px 20px; border-radius: 20px; float: right; }
+        #cancel-edit-btn { background: #999; color: white; padding: 10px 20px; border-radius: 20px; float: right; margin-right: 10px; display: none; }
+        
+        /* --- TIMELINE --- */
         .step-list { display: flex; flex-direction: column; gap: 10px; }
         .timeline-item {
             display: flex; background: white; border: 1px solid var(--border);
@@ -90,10 +107,13 @@
         .step-title { font-weight: 700; font-size: 0.95rem; }
         .step-time { font-family: monospace; font-size: 1.1rem; font-weight: 600; color: #333; }
         .step-details { font-size: 0.85rem; color: #555; margin-top: 4px; }
-        .delete-step { background: none; color: #ccc; font-size: 1.2rem; padding: 0 15px; }
-        .delete-step:hover { color: red; }
+        
+        .action-btn { background: none; border: none; font-size: 1.1rem; padding: 0 10px; cursor: pointer; color: #ccc; }
+        .edit-btn:hover { color: #333; }
+        .delete-btn:hover { color: #FF4444; }
+        .actions { display: flex; align-items: center; padding-right: 5px; }
 
-        /* --- SEARCH & LIBRARY --- */
+        /* --- LIBRARY & SEARCH --- */
         .search-container { margin-bottom: 20px; }
         #searchInput {
             width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem;
@@ -106,21 +126,21 @@
         }
         .saved-recipe-card {
             background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px;
-            transition: transform 0.2s; position: relative;
+            transition: transform 0.2s; position: relative; cursor: pointer;
         }
-        .saved-recipe-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .saved-recipe-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #333; }
         .saved-header h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
         .saved-meta { font-size: 0.85rem; color: #666; margin-top: 5px; }
         .saved-tags { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
         .tag { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; background: #eee; font-weight: 600; }
-        .card-rating { color: #FFD700; font-size: 0.9rem; float: right; margin-right: 15px; }
-
-        .delete-recipe-btn {
-            position: absolute; top: 15px; right: 15px; background: none;
-            color: #ff4444; font-size: 1.2rem; padding: 0;
+        .card-rating { color: #FFD700; font-size: 0.9rem; float: right; }
+        
+        .delete-recipe-btn { 
+            position: absolute; top: 15px; right: 15px; background: none; 
+            color: #ff4444; font-size: 1.2rem; padding: 0; z-index: 10;
         }
 
-        /* --- STAR RATING INPUT --- */
+        /* --- STAR RATING --- */
         .star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 5px; }
         .star-rating input { display: none; }
         .star-rating label { cursor: pointer; font-size: 1.5rem; color: #ddd; margin: 0; }
@@ -133,6 +153,8 @@
         .selected { transform: scale(1.1); border: 2px solid #333; }
         .color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
         .color-picker { display: flex; gap: 10px; margin-top: 5px; }
+        
+        .edit-mode-active { border: 2px solid #FF4444 !important; }
     </style>
 </head>
 <body>
@@ -140,7 +162,10 @@
     <header>
         <h1>
             <span class="logo-icon">☕</span> The Daily Brew
-            <button id="save-recipe-btn">Save Recipe</button>
+            <div style="margin-left:auto; display:flex; gap:10px;">
+                <button id="cancel-edit-btn">Cancel</button>
+                <button id="save-recipe-btn">Save Recipe</button>
+            </div>
         </h1>
     </header>
 
@@ -148,33 +173,15 @@
         
         <div class="left-col">
             
-            <div class="card">
+            <div class="card" id="details-card">
                 <div class="card-header">Details</div>
-                
                 <div style="margin-bottom: 15px;">
                     <label>Bean Name / Origin</label>
-                    <input type="text" id="beanName" list="beanHistory" placeholder="e.g. Ethiopia Yirgacheffe" autocomplete="off">
-                    <datalist id="beanHistory"></datalist> </div>
-
+                    <input type="text" id="beanName" placeholder="e.g. Ethiopia Yirgacheffe" autocomplete="off">
+                </div>
                 <div class="grid-2">
-                    <div>
-                        <label>Recipe Name</label>
-                        <input type="text" id="recipeName" placeholder="Morning V60">
-                    </div>
-                    <div>
-                        <label>Method</label>
-                        <input type="text" id="brewer" list="methodSuggestions" placeholder="Select or type...">
-                        <datalist id="methodSuggestions">
-                            <option value="V60">
-                            <option value="Aeropress">
-                            <option value="Inverted Aeropress">
-                            <option value="French Press">
-                            <option value="Espresso">
-                            <option value="Chemex">
-                            <option value="Kalita Wave">
-                            <option value="Filter Kappi">
-                        </datalist>
-                    </div>
+                    <div><label>Recipe Name</label><input type="text" id="recipeName" placeholder="Morning V60"></div>
+                    <div><label>Method</label><input type="text" id="brewer" placeholder="e.g. V60" autocomplete="off"></div>
                 </div>
                 <br>
                 <div class="grid-3">
@@ -189,8 +196,12 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">Add Step</div>
+            <div class="card" id="step-form-card">
+                <div class="card-header">
+                    <span id="step-card-title">Add Step</span>
+                    <button id="cancel-step-edit">Cancel Edit</button>
+                </div>
+                
                 <div class="grid-2">
                     <div>
                         <label>Type</label>
@@ -253,12 +264,10 @@
     </div>
 
     <div class="library-container">
-        <h2>📚 Coffee Log</h2>
-        
+        <h2>📚 Coffee Log <small style="font-size:0.8rem; color:#888; font-weight:normal;">(Click card to edit)</small></h2>
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Search beans, methods, or notes...">
         </div>
-
         <div id="library-grid" class="library-grid">
             <div style="color:#666;">Loading recipes...</div>
         </div>
@@ -266,7 +275,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } 
+        import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // ⚠️ PASTE YOUR FIREBASE CONFIG BELOW ⚠️
@@ -286,6 +295,8 @@
         let steps = [];
         let allRecipes = [];
         let selectedColor = 'bg-blue';
+        let editingId = null;        // Recipe ID being edited
+        let editingStepIndex = null; // Step Index being edited (NEW)
 
         // 1. RATIO CALC
         window.calcRatio = function() {
@@ -304,7 +315,7 @@
             });
         });
 
-        // 3. ADD STEP TO TIMELINE
+        // 3. ADD / UPDATE STEP LOGIC
         document.getElementById('add-step-btn').addEventListener('click', function() {
             const sMin = document.getElementById('startMin').value || 0;
             const sSec = document.getElementById('startSec').value || 0;
@@ -312,19 +323,64 @@
             const eSec = document.getElementById('endSec').value || 0;
             const timeStr = `${sMin}:${sSec.toString().padStart(2,'0')} → ${eMin}:${eSec.toString().padStart(2,'0')}`;
 
-            const newStep = {
+            const stepData = {
                 id: Date.now(),
                 type: document.getElementById('stepType').value,
                 label: document.getElementById('stepLabel').value || document.getElementById('stepType').value,
                 color: selectedColor,
+                startMin: sMin, startSec: sSec, endMin: eMin, endSec: eSec, // Store raw time for editing
                 timeDisplay: timeStr,
                 weight: document.getElementById('stepWeight').value ? ` · ${document.getElementById('stepWeight').value}g` : '',
+                weightRaw: document.getElementById('stepWeight').value, // Store raw weight
                 notes: document.getElementById('stepNotes').value
             };
-            steps.push(newStep);
+
+            if (editingStepIndex !== null) {
+                // UPDATE EXISTING STEP (In Place)
+                steps[editingStepIndex] = stepData;
+                editingStepIndex = null; // Reset mode
+                resetStepForm(false); // Don't auto-chain when updating
+            } else {
+                // ADD NEW STEP
+                steps.push(stepData);
+                // Auto-chain: Next step starts where this one ended
+                resetStepForm(true, eMin, eSec);
+            }
+
             renderBuilder();
         });
 
+        function resetStepForm(chain = false, min = "", sec = "") {
+            document.getElementById('stepLabel').value = "";
+            document.getElementById('stepWeight').value = "";
+            document.getElementById('stepNotes').value = "";
+            
+            if (chain) {
+                document.getElementById('startMin').value = min;
+                document.getElementById('startSec').value = sec;
+            } else {
+                document.getElementById('startMin').value = "";
+                document.getElementById('startSec').value = "";
+            }
+            
+            document.getElementById('endMin').value = "";
+            document.getElementById('endSec').value = "";
+            
+            // Reset UI State
+            document.getElementById('add-step-btn').textContent = "Add Step";
+            document.getElementById('add-step-btn').classList.remove('updating');
+            document.getElementById('step-card-title').textContent = "Add Step";
+            document.getElementById('cancel-step-edit').style.display = 'none';
+            document.getElementById('step-form-card').classList.remove('step-edit-active');
+            editingStepIndex = null;
+        }
+
+        // Cancel Step Edit Button
+        document.getElementById('cancel-step-edit').addEventListener('click', function() {
+            resetStepForm(false);
+        });
+
+        // 4. RENDER BUILDER (Now with Edit Buttons)
         function renderBuilder() {
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
@@ -340,18 +396,61 @@
                         <div class="step-time">${step.timeDisplay} ${step.weight}</div>
                         <div class="step-details">${step.notes}</div>
                     </div>
-                    <button class="delete-step" onclick="removeStep(${index})">×</button>`;
+                    <div class="actions">
+                        <button class="action-btn edit-btn" onclick="editStep(${index})">✏️</button>
+                        <button class="action-btn delete-btn" onclick="removeStep(${index})">×</button>
+                    </div>`;
                 container.appendChild(el);
             });
         }
-        window.removeStep = (idx) => { steps.splice(idx, 1); renderBuilder(); };
 
-        // 4. SAVE RECIPE
+        // 5. EDIT STEP FUNCTION
+        window.editStep = function(index) {
+            const step = steps[index];
+            editingStepIndex = index; // Set global index
+
+            // Fill Form
+            document.getElementById('stepType').value = step.type;
+            document.getElementById('stepLabel').value = step.label;
+            document.getElementById('stepWeight').value = step.weightRaw || "";
+            document.getElementById('stepNotes').value = step.notes;
+            
+            // Fill Time (Handle legacy data safely)
+            document.getElementById('startMin').value = step.startMin || 0;
+            document.getElementById('startSec').value = step.startSec || 0;
+            document.getElementById('endMin').value = step.endMin || 0;
+            document.getElementById('endSec').value = step.endSec || 0;
+
+            // Set Color
+            selectedColor = step.color;
+            document.querySelectorAll('.color-dot').forEach(d => {
+                d.classList.remove('selected');
+                if(d.getAttribute('data-color') === step.color) d.classList.add('selected');
+            });
+
+            // UI Changes
+            document.getElementById('add-step-btn').textContent = "Update Step";
+            document.getElementById('add-step-btn').classList.add('updating');
+            document.getElementById('step-card-title').textContent = "Editing Step " + (index + 1);
+            document.getElementById('cancel-step-edit').style.display = 'inline-block';
+            document.getElementById('step-form-card').classList.add('step-edit-active');
+
+            // Scroll to form
+            document.getElementById('step-form-card').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.removeStep = (idx) => { 
+            if(editingStepIndex === idx) resetStepForm(false); // If deleting active edit
+            steps.splice(idx, 1); 
+            renderBuilder(); 
+        };
+
+        // 6. SAVE RECIPE
         document.getElementById('save-recipe-btn').addEventListener('click', async () => {
             const btn = document.getElementById('save-recipe-btn');
+            const originalText = btn.textContent;
             btn.textContent = "Saving...";
             
-            // Get Rating
             const ratingEl = document.querySelector('input[name="rating"]:checked');
             const ratingVal = ratingEl ? Number(ratingEl.value) : 0;
 
@@ -369,24 +468,43 @@
             };
 
             try {
-                await addDoc(collection(db, "recipes"), recipeData);
-                btn.textContent = "Saved!";
-                setTimeout(() => btn.textContent = "Save Recipe", 2000);
-                
-                // Clear Form
-                document.getElementById('recipeName').value = "";
-                document.getElementById('beanName').value = "";
-                document.getElementById('stepNotes').value = "";
-                if(ratingEl) ratingEl.checked = false;
-                steps = []; renderBuilder();
-                
+                if (editingId) {
+                    await setDoc(doc(db, "recipes", editingId), recipeData);
+                    alert("Recipe Updated! ✨");
+                } else {
+                    await addDoc(collection(db, "recipes"), recipeData);
+                }
+                resetFullForm();
+                btn.textContent = originalText;
             } catch(e) {
                 alert("Save Error: " + e.message);
-                btn.textContent = "Save Recipe";
+                btn.textContent = originalText;
             }
         });
 
-        // 5. LIBRARY & SEARCH ENGINE
+        document.getElementById('cancel-edit-btn').addEventListener('click', resetFullForm);
+
+        function resetFullForm() {
+            editingId = null;
+            resetStepForm(false); // Reset step form too
+            document.getElementById('recipeName').value = "";
+            document.getElementById('beanName').value = "";
+            document.getElementById('brewer').value = "";
+            
+            const ratingEl = document.querySelector('input[name="rating"]:checked');
+            if(ratingEl) ratingEl.checked = false;
+
+            steps = []; 
+            renderBuilder();
+            
+            // Reset UI State
+            document.getElementById('save-recipe-btn').textContent = "Save Recipe";
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+            document.getElementById('details-card').classList.remove('edit-mode-active');
+            window.scrollTo(0,0);
+        }
+
+        // 7. LIBRARY & LOAD
         const q = query(collection(db, "recipes"), orderBy("timestamp", "desc"));
 
         onSnapshot(q, (snapshot) => {
@@ -395,8 +513,37 @@
                 allRecipes.push({ id: doc.id, ...doc.data() });
             });
             renderLibrary(allRecipes);
-            updateBeanSuggestions(allRecipes); // Update the Auto-Complete List
         });
+
+        window.loadForEdit = function(id) {
+            const r = allRecipes.find(x => x.id === id);
+            if(!r) return;
+
+            document.getElementById('beanName').value = r.bean || "";
+            document.getElementById('recipeName').value = r.name || "";
+            document.getElementById('brewer').value = r.brewer || "";
+            document.getElementById('coffeeGrams').value = r.coffee || 0;
+            document.getElementById('waterGrams').value = r.water || 0;
+            document.getElementById('temp').value = r.temp || 93;
+            document.getElementById('grindSize').value = r.grind || "";
+            calcRatio();
+
+            const stars = document.querySelectorAll('input[name="rating"]');
+            stars.forEach(s => s.checked = false);
+            if(r.rating) {
+                const radio = document.querySelector(`input[name="rating"][value="${r.rating}"]`);
+                if(radio) radio.checked = true;
+            }
+
+            steps = r.steps || [];
+            renderBuilder();
+
+            editingId = id;
+            document.getElementById('save-recipe-btn').textContent = "Update Recipe";
+            document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+            document.getElementById('details-card').classList.add('edit-mode-active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
 
         function renderLibrary(recipesToRender) {
             const grid = document.getElementById('library-grid');
@@ -410,27 +557,19 @@
             recipesToRender.forEach(r => {
                 const ratio = (r.water / r.coffee).toFixed(1);
                 const stars = "★".repeat(r.rating || 0) + "☆".repeat(5 - (r.rating || 0));
+                const stepCount = r.steps ? r.steps.length : 0;
                 
-                let stepsHtml = "";
-                if(r.steps && Array.isArray(r.steps)) {
-                    r.steps.forEach(s => {
-                        stepsHtml += `
-                            <div class="timeline-item" style="margin-bottom:5px; padding:0; border:none;">
-                                <div class="color-bar ${s.color}" style="width:4px;"></div>
-                                <div class="timeline-content" style="padding:4px 8px;">
-                                    <div style="font-size:0.75rem;"><b>${s.label}</b> <span style="color:#888;">${s.timeDisplay}</span></div>
-                                </div>
-                            </div>`;
-                    });
-                }
-
                 const card = document.createElement('div');
                 card.className = "saved-recipe-card";
+                card.onclick = (e) => {
+                    if(!e.target.classList.contains('delete-recipe-btn')) loadForEdit(r.id);
+                };
+
                 card.innerHTML = `
                     <div class="saved-header">
                         <div style="display:flex; justify-content:space-between;">
                             <h3>${r.name}</h3>
-                            <span class="card-rating">${stars} </span>
+                            <span class="card-rating">${stars}</span>
                         </div>
                         <div class="saved-meta">${r.bean || "Unknown Bean"}</div>
                         <button class="delete-recipe-btn" onclick="deleteRecipe('${r.id}')">×</button>
@@ -438,9 +577,7 @@
                     <div class="saved-tags">
                         <span class="tag">${r.brewer}</span>
                         <span class="tag">1:${ratio}</span>
-                    </div>
-                    <div style="max-height:150px; overflow-y:auto; margin-top:10px; border-top:1px solid #eee; padding-top:5px;">
-                        ${stepsHtml || "<small>No steps</small>"}
+                        <span class="tag">${stepCount} Steps</span>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -458,25 +595,11 @@
             renderLibrary(filtered);
         });
 
-        // 6. SMART BEAN HISTORY (Auto-Complete)
-        function updateBeanSuggestions(recipes) {
-            const allBeans = recipes.map(r => r.bean);
-            const uniqueBeans = [...new Set(allBeans)].filter(name => name && name.trim() !== "");
-            uniqueBeans.sort();
-
-            const dataList = document.getElementById('beanHistory');
-            dataList.innerHTML = ""; 
-            uniqueBeans.forEach(bean => {
-                const option = document.createElement('option');
-                option.value = bean;
-                dataList.appendChild(option);
-            });
-        }
-
-        // 7. DELETE
+        // 8. DELETE RECIPE
         window.deleteRecipe = async (id) => {
             if(confirm("Delete this recipe permanently?")) {
                 await deleteDoc(doc(db, "recipes", id));
+                if(editingId === id) resetFullForm();
             }
         };
 
