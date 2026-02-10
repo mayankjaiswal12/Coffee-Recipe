@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>The Daily Brew</title>
+    <title>The Daily Brew | V11.5</title>
     <style>
         :root {
             --bg: #F9F9F9;
@@ -36,20 +36,13 @@
             gap: 20px;
             align-items: start;
         }
-        
-        /* Library Section (New) */
-        .library-container {
-            margin-top: 40px;
-            border-top: 2px solid var(--border);
-            padding-top: 20px;
-        }
 
         @media (max-width: 768px) {
             .main-container { grid-template-columns: 1fr; } 
         }
 
         h1, h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 20px 0; }
-        h2 { font-size: 1.3rem; margin-bottom: 15px; }
+        h2 { font-size: 1.3rem; margin-top: 40px; margin-bottom: 15px; border-top: 1px solid #ddd; padding-top: 20px; }
         .logo-icon { font-size: 1.5rem; }
 
         /* --- CARDS --- */
@@ -95,17 +88,21 @@
         .timeline-content { padding: 12px 15px; flex-grow: 1; }
         .step-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .step-title { font-weight: 700; font-size: 0.95rem; }
-        .step-type { font-size: 0.7rem; color: #888; text-transform: uppercase; font-style: italic; }
         .step-time { font-family: monospace; font-size: 1.1rem; font-weight: 600; color: #333; }
         .step-details { font-size: 0.85rem; color: #555; margin-top: 4px; }
         .delete-step { background: none; color: #ccc; font-size: 1.2rem; padding: 0 15px; }
         .delete-step:hover { color: red; }
 
-        /* --- LIBRARY STYLES (New) --- */
+        /* --- SEARCH & LIBRARY --- */
+        .search-container { margin-bottom: 20px; }
+        #searchInput {
+            width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem;
+            background: white no-repeat 96% center;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23999" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>');
+        }
+
         .library-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;
         }
         .saved-recipe-card {
             background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px;
@@ -116,31 +113,33 @@
         .saved-meta { font-size: 0.85rem; color: #666; margin-top: 5px; }
         .saved-tags { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
         .tag { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; background: #eee; font-weight: 600; }
+        .card-rating { color: #FFD700; font-size: 0.9rem; float: right; }
         
-        .view-btn { width: 100%; background: #333; color: white; padding: 8px; margin-top: 10px; }
         .delete-recipe-btn { 
             position: absolute; top: 15px; right: 15px; background: none; 
             color: #ff4444; font-size: 1.2rem; padding: 0; 
         }
 
+        /* --- STAR RATING INPUT --- */
+        .star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 5px; }
+        .star-rating input { display: none; }
+        .star-rating label { cursor: pointer; font-size: 1.5rem; color: #ddd; margin: 0; }
+        .star-rating input:checked ~ label, .star-rating label:hover, .star-rating label:hover ~ label { color: #FFD700; }
+
         /* Helpers */
-        .bg-yellow { background-color: #FCDF87; }
-        .bg-blue { background-color: #B2DFDB; }
-        .bg-red { background-color: #FFCDD2; }
-        .bg-purple { background-color: #E1BEE7; }
-        .bg-gray { background-color: #EEEEEE; }
-        .bg-brown { background-color: #D7CCC8; }
+        .bg-yellow { background-color: #FCDF87; } .bg-blue { background-color: #B2DFDB; }
+        .bg-red { background-color: #FFCDD2; } .bg-purple { background-color: #E1BEE7; }
+        .bg-gray { background-color: #EEEEEE; } .bg-brown { background-color: #D7CCC8; }
         .selected { transform: scale(1.1); border: 2px solid #333; }
         .color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
         .color-picker { display: flex; gap: 10px; margin-top: 5px; }
-
     </style>
 </head>
 <body>
 
     <header>
         <h1>
-            <span class="logo-icon">☕</span> Recipe Builder 
+            <span class="logo-icon">☕</span> The Daily Brew
             <button id="save-recipe-btn">Save Recipe</button>
         </h1>
     </header>
@@ -148,31 +147,26 @@
     <div class="main-container">
         
         <div class="left-col">
+            
             <div class="card">
                 <div class="card-header">Details</div>
                 
                 <div style="margin-bottom: 15px;">
                     <label>Bean Name / Origin</label>
-                    <input type="text" id="beanName" placeholder="e.g. Ethiopia Yirgacheffe">
-                </div>
+                    <input type="text" id="beanName" list="beanHistory" placeholder="e.g. Ethiopia Yirgacheffe" autocomplete="off">
+                    <datalist id="beanHistory"></datalist> </div>
 
                 <div class="grid-2">
                     <div>
                         <label>Recipe Name</label>
-                        <input type="text" id="recipeName" placeholder="e.g. Morning Brew">
+                        <input type="text" id="recipeName" placeholder="Morning V60">
                     </div>
                     <div>
                         <label>Method</label>
-                        <input type="text" id="brewer" list="methodSuggestions" placeholder="Select or type..." required>
+                        <input type="text" id="brewer" list="methodSuggestions" placeholder="Select or type...">
                         <datalist id="methodSuggestions">
-                            <option value="V60"></option>
-                            <option value="Aeropress"></option>
-                            <option value="French Press"></option>
-                            <option value="Espresso"></option>
-                            <option value="Moka Pot"></option>
-                            <option value="Chemex"></option>
-                            <option value="Siphon"></option>
-                            <option value="Cold Brew"></option>
+                            <option value="V60"><option value="Aeropress"><option value="French Press">
+                            <option value="Espresso"><option value="Chemex"><option value="Switch">
                         </datalist>
                     </div>
                 </div>
@@ -180,12 +174,12 @@
                 <div class="grid-3">
                     <div><label>Coffee (g)</label><input type="number" id="coffeeGrams" value="15" oninput="calcRatio()"></div>
                     <div><label>Water (g)</label><input type="number" id="waterGrams" value="255" oninput="calcRatio()"></div>
-                    <div><label>Temp (°C)</label><input type="number" id="temp" value="94"></div>
+                    <div><label>Temp (°C)</label><input type="number" id="temp" value="93"></div>
                 </div>
                 <br>
                 <div class="grid-2">
                     <div><label>Ratio 1 :</label><input type="text" id="ratioDisplay" readonly style="background:#eee; color:#666;"></div>
-                    <div><label>Grind</label><input type="text" id="grindSize" placeholder="e.g. K-Max 6.2"></div>
+                    <div><label>Grind</label><input type="text" id="grindSize" placeholder="e.g. 18 Clicks"></div>
                 </div>
             </div>
 
@@ -225,14 +219,26 @@
                 <br>
                 <label>Target Weight</label><input type="number" id="stepWeight" placeholder="Optional (g)">
                 <br><br>
-                <label>Notes</label><textarea id="stepNotes" rows="1" cols="50"></textarea>
+                
+                <div class="grid-2" style="align-items: center; margin-bottom: 15px;">
+                    <label style="margin:0;">Rate this Brew</label>
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+                    </div>
+                </div>
+
+                <label>Notes</label><textarea id="stepNotes" rows="2"></textarea>
                 <button id="add-step-btn">Add Step</button>
             </div>
         </div>
 
         <div class="right-col">
             <div class="card" style="min-height: 500px;">
-                <div class="card-header">Current Build</div>
+                <div class="card-header">Timeline</div>
                 <div id="timeline-container" class="step-list">
                     <div style="text-align:center; color:#ccc; margin-top:50px;" id="empty-state">No steps added.</div>
                 </div>
@@ -241,7 +247,12 @@
     </div>
 
     <div class="library-container">
-        <h2>Recipe Library</h2>
+        <h2>📚 Coffee Log</h2>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search beans, methods, or notes...">
+        </div>
+
         <div id="library-grid" class="library-grid">
             <div style="color:#666;">Loading recipes...</div>
         </div>
@@ -252,7 +263,7 @@
         import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // CONFIG
+        // ⚠️ PASTE YOUR FIREBASE CONFIG BELOW ⚠️
         const firebaseConfig = {
             apiKey: "PASTE_YOUR_API_KEY_HERE", 
             authDomain: "coffee-database-92533.firebaseapp.com",
@@ -265,18 +276,20 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- BUILDER LOGIC ---
+        // --- GLOBAL STATE ---
         let steps = [];
+        let allRecipes = [];
         let selectedColor = 'bg-blue';
 
+        // 1. RATIO CALC
         window.calcRatio = function() {
             const c = parseFloat(document.getElementById('coffeeGrams').value) || 0;
             const w = parseFloat(document.getElementById('waterGrams').value) || 0;
-            const box = document.getElementById('ratioDisplay');
-            box.value = (c > 0 && w > 0) ? (w / c).toFixed(1) : "-";
+            document.getElementById('ratioDisplay').value = (c > 0 && w > 0) ? (w / c).toFixed(1) : "-";
         }
         calcRatio();
 
+        // 2. COLOR PICKER
         document.querySelectorAll('.color-dot').forEach(dot => {
             dot.addEventListener('click', function() {
                 document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
@@ -285,6 +298,7 @@
             });
         });
 
+        // 3. ADD STEP TO TIMELINE
         document.getElementById('add-step-btn').addEventListener('click', function() {
             const sMin = document.getElementById('startMin').value || 0;
             const sSec = document.getElementById('startSec').value || 0;
@@ -308,26 +322,33 @@
         function renderBuilder() {
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
+            if(steps.length === 0) container.innerHTML = '<div style="text-align:center; color:#ccc; margin-top:50px;">No steps added.</div>';
+            
             steps.forEach((step, index) => {
-                container.innerHTML += `
-                    <div class="timeline-item">
-                        <div class="color-bar ${step.color}"></div>
-                        <div class="timeline-content">
-                            <div class="step-header"><span class="step-title">${step.label}</span></div>
-                            <div class="step-time">${step.timeDisplay} ${step.weight}</div>
-                            <div class="step-details">${step.notes}</div>
-                        </div>
-                        <button class="delete-step" onclick="removeStep(${index})">×</button>
-                    </div>`;
+                const el = document.createElement('div');
+                el.className = 'timeline-item';
+                el.innerHTML = `
+                    <div class="color-bar ${step.color}"></div>
+                    <div class="timeline-content">
+                        <div class="step-header"><span class="step-title">${step.label}</span></div>
+                        <div class="step-time">${step.timeDisplay} ${step.weight}</div>
+                        <div class="step-details">${step.notes}</div>
+                    </div>
+                    <button class="delete-step" onclick="removeStep(${index})">×</button>`;
+                container.appendChild(el);
             });
         }
         window.removeStep = (idx) => { steps.splice(idx, 1); renderBuilder(); };
 
-        // --- SAVE LOGIC ---
+        // 4. SAVE RECIPE
         document.getElementById('save-recipe-btn').addEventListener('click', async () => {
             const btn = document.getElementById('save-recipe-btn');
             btn.textContent = "Saving...";
             
+            // Get Rating
+            const ratingEl = document.querySelector('input[name="rating"]:checked');
+            const ratingVal = ratingEl ? Number(ratingEl.value) : 0;
+
             const recipeData = {
                 name: document.getElementById('recipeName').value || "Untitled",
                 bean: document.getElementById('beanName').value || "",
@@ -336,52 +357,64 @@
                 water: Number(document.getElementById('waterGrams').value),
                 temp: Number(document.getElementById('temp').value),
                 grind: document.getElementById('grindSize').value,
+                rating: ratingVal,
                 steps: steps,
                 timestamp: serverTimestamp()
             };
+
             try {
                 await addDoc(collection(db, "recipes"), recipeData);
                 btn.textContent = "Saved!";
                 setTimeout(() => btn.textContent = "Save Recipe", 2000);
                 
-                // ➕ ADD THESE LINES TO CLEAR THE FORM:
+                // Clear Form
                 document.getElementById('recipeName').value = "";
                 document.getElementById('beanName').value = "";
-                document.getElementById('brewer').value = ""; // Clears the Method
                 document.getElementById('stepNotes').value = "";
+                if(ratingEl) ratingEl.checked = false;
+                steps = []; renderBuilder();
                 
-                // ➕ Reset Steps for the next recipe
-                steps = []; 
-                renderBuilder(); 
-
             } catch(e) {
                 alert("Save Error: " + e.message);
                 btn.textContent = "Save Recipe";
             }
         });
 
-        // --- LIBRARY LOGIC (VIEWER) ---
+        // 5. LIBRARY & SEARCH ENGINE
         const q = query(collection(db, "recipes"), orderBy("timestamp", "desc"));
+
         onSnapshot(q, (snapshot) => {
+            allRecipes = []; 
+            snapshot.forEach(doc => {
+                allRecipes.push({ id: doc.id, ...doc.data() });
+            });
+            renderLibrary(allRecipes);
+            updateBeanSuggestions(allRecipes); // Update the Auto-Complete List
+        });
+
+        function renderLibrary(recipesToRender) {
             const grid = document.getElementById('library-grid');
             grid.innerHTML = "";
-            snapshot.forEach(doc => {
-                const r = doc.data();
+            
+            if(recipesToRender.length === 0) {
+                grid.innerHTML = "<div style='color:#ccc; text-align:center;'>No coffees found.</div>";
+                return;
+            }
+
+            recipesToRender.forEach(r => {
                 const ratio = (r.water / r.coffee).toFixed(1);
+                const stars = "★".repeat(r.rating || 0) + "☆".repeat(5 - (r.rating || 0));
                 
-                // Build Steps HTML for the card
                 let stepsHtml = "";
                 if(r.steps && Array.isArray(r.steps)) {
                     r.steps.forEach(s => {
                         stepsHtml += `
-                            <div class="timeline-item" style="margin-bottom:5px; padding:0;">
-                                <div class="color-bar ${s.color}" style="width:5px;"></div>
-                                <div class="timeline-content" style="padding:8px;">
-                                    <div style="font-weight:bold; font-size:0.8rem;">${s.label}</div>
-                                    <div style="font-size:0.75rem; font-family:monospace;">${s.timeDisplay}</div>
+                            <div class="timeline-item" style="margin-bottom:5px; padding:0; border:none;">
+                                <div class="color-bar ${s.color}" style="width:4px;"></div>
+                                <div class="timeline-content" style="padding:4px 8px;">
+                                    <div style="font-size:0.75rem;"><b>${s.label}</b> <span style="color:#888;">${s.timeDisplay}</span></div>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                     });
                 }
 
@@ -389,23 +422,52 @@
                 card.className = "saved-recipe-card";
                 card.innerHTML = `
                     <div class="saved-header">
-                        <h3>${r.name}</h3>
-                        <div class="saved-meta">${r.bean}</div>
-                        <button class="delete-recipe-btn" onclick="deleteRecipe('${doc.id}')">×</button>
+                        <div style="display:flex; justify-content:space-between;">
+                            <h3>${r.name}</h3>
+                            <span class="card-rating">${stars}</span>
+                        </div>
+                        <div class="saved-meta">${r.bean || "Unknown Bean"}</div>
+                        <button class="delete-recipe-btn" onclick="deleteRecipe('${r.id}')">×</button>
                     </div>
                     <div class="saved-tags">
                         <span class="tag">${r.brewer}</span>
                         <span class="tag">1:${ratio}</span>
-                        <span class="tag">${r.coffee}g In</span>
                     </div>
-                    <div style="max-height:200px; overflow-y:auto; border-top:1px solid #eee; padding-top:10px;">
-                        ${stepsHtml || "<small>No steps recorded</small>"}
+                    <div style="max-height:150px; overflow-y:auto; margin-top:10px; border-top:1px solid #eee; padding-top:5px;">
+                        ${stepsHtml || "<small>No steps</small>"}
                     </div>
                 `;
                 grid.appendChild(card);
             });
+        }
+
+        // Search Filter
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allRecipes.filter(r => 
+                (r.name && r.name.toLowerCase().includes(term)) ||
+                (r.bean && r.bean.toLowerCase().includes(term)) ||
+                (r.brewer && r.brewer.toLowerCase().includes(term))
+            );
+            renderLibrary(filtered);
         });
 
+        // 6. SMART BEAN HISTORY (Auto-Complete)
+        function updateBeanSuggestions(recipes) {
+            const allBeans = recipes.map(r => r.bean);
+            const uniqueBeans = [...new Set(allBeans)].filter(name => name && name.trim() !== "");
+            uniqueBeans.sort();
+
+            const dataList = document.getElementById('beanHistory');
+            dataList.innerHTML = ""; 
+            uniqueBeans.forEach(bean => {
+                const option = document.createElement('option');
+                option.value = bean;
+                dataList.appendChild(option);
+            });
+        }
+
+        // 7. DELETE
         window.deleteRecipe = async (id) => {
             if(confirm("Delete this recipe permanently?")) {
                 await deleteDoc(doc(db, "recipes", id));
