@@ -1,4 +1,4 @@
-# ☕ The Daily Brew | V11.5 Smart Journal
+# ☕ The Daily Brew 
 
 **The Daily Brew** is a professional-grade coffee recipe builder and smart journal.
 
