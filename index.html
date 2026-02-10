@@ -113,11 +113,11 @@
         .saved-meta { font-size: 0.85rem; color: #666; margin-top: 5px; }
         .saved-tags { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
         .tag { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; background: #eee; font-weight: 600; }
-        .card-rating { color: #FFD700; font-size: 0.9rem; float: right; }
-        
-        .delete-recipe-btn { 
-            position: absolute; top: 15px; right: 15px; background: none; 
-            color: #ff4444; font-size: 1.2rem; padding: 0; 
+        .card-rating { color: #FFD700; font-size: 0.9rem; float: right; margin-right: 15px; }
+
+        .delete-recipe-btn {
+            position: absolute; top: 15px; right: 15px; background: none;
+            color: #ff4444; font-size: 1.2rem; padding: 0;
         }
 
         /* --- STAR RATING INPUT --- */
@@ -424,7 +424,7 @@
                     <div class="saved-header">
                         <div style="display:flex; justify-content:space-between;">
                             <h3>${r.name}</h3>
-                            <span class="card-rating">${stars}</span>
+                            <span class="card-rating">${stars} </span>
                         </div>
                         <div class="saved-meta">${r.bean || "Unknown Bean"}</div>
                         <button class="delete-recipe-btn" onclick="deleteRecipe('${r.id}')">×</button>
