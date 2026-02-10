@@ -84,24 +84,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /recipes/{recipeId} {
-      // Allow anyone to read and delete recipes
+      // Allow reading and deleting
       allow read, delete: if true;
       
-      // Only allow creation if the data format is correct (V11.5 Mode)
-      allow create: if 
+      // Allow Creating AND Updating (Required for V13 Edit Mode)
+      allow create, update: if 
          request.resource.data.coffee is number &&
-         request.resource.data.water is number &&
          request.resource.data.name is string &&
-         // Allow the new Rating field (optional but must be a number)
          (request.resource.data.rating is number || request.resource.data.rating == null) &&
-         request.resource.data.steps is list; // Required for the timeline builder
-         
-      // Block edits (Updates) to keep it simple
-      allow update: if false;
+         request.resource.data.steps is list;
     }
   }
 }
-```
+```ß
 🔒 Final Step: API Key Lockdown
 To prevent others from using your database quota, lock your API key to your Netlify site.
 
