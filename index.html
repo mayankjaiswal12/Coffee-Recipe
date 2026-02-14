@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>The Daily Brew | V13 Pro Editor</title>
+    <title>Bean Stack</title>
     <style>
         :root {
             --bg: #F9F9F9;
-            --surface: #FFFFFF;
+            --surface: #FFFFFF; 
             --text: #333;
             --border: #E0E0E0;
             --primary: #333;
@@ -56,7 +56,6 @@
             transition: border-color 0.2s;
         }
         
-        /* Highlight the Step Form when editing a specific step */
         .step-edit-active {
             border: 2px solid #333 !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -85,11 +84,11 @@
         button { cursor: pointer; border: none; font-weight: bold; border-radius: 6px; }
         
         #add-step-btn { width: 100%; background: #333; color: white; padding: 12px; margin-top: 15px; transition: background 0.2s; }
-        #add-step-btn.updating { background: #4CAF50; } /* Green when updating */
+        #add-step-btn.updating { background: #4CAF50; } 
         
         #cancel-step-edit { 
             background: none; color: #888; text-decoration: underline; font-size: 0.8rem; 
-            cursor: pointer; display: none; /* Hidden by default */
+            cursor: pointer; display: none; 
         }
 
         #save-recipe-btn { background: #FF4444; color: white; padding: 10px 20px; border-radius: 20px; float: right; }
@@ -113,7 +112,7 @@
         .delete-btn:hover { color: #FF4444; }
         .actions { display: flex; align-items: center; padding-right: 5px; }
 
-        /* --- LIBRARY & SEARCH --- */
+        /* --- LIBRARY --- */
         .search-container { margin-bottom: 20px; }
         #searchInput {
             width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem;
@@ -153,8 +152,6 @@
         .selected { transform: scale(1.1); border: 2px solid #333; }
         .color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
         .color-picker { display: flex; gap: 10px; margin-top: 5px; }
-        
-        .edit-mode-active { border: 2px solid #FF4444 !important; }
     </style>
 </head>
 <body>
@@ -176,23 +173,39 @@
             <div class="card" id="details-card">
                 <div class="card-header">Details</div>
                 <div style="margin-bottom: 15px;">
-                    <label>Bean Name / Origin</label>
+                    <label>Bean Name</label>
                     <input type="text" id="beanName" placeholder="e.g. Ethiopia Yirgacheffe" autocomplete="off">
                 </div>
                 <div class="grid-2">
-                    <div><label>Recipe Name</label><input type="text" id="recipeName" placeholder="Morning V60"></div>
-                    <div><label>Method</label><input type="text" id="brewer" placeholder="e.g. V60" autocomplete="off"></div>
+                    <div>
+                        <label>Recipe Name</label>
+                        <input type="text" id="recipeName" placeholder="Morning V60">
+                    </div>
+                    <div>
+                        <label>Method</label>
+                        <input type="text" id="brewer" list="methodSuggestions" placeholder="Select" autocomplete="off">
+                        <datalist id="methodSuggestions">
+                            <option value="V60"></option>
+                            <option value="Aeropress"></option>
+                            <option value="Inverted Aeropress"></option>
+                            <option value="French Press"></option>
+                            <option value="Moka Pot"></option>
+                            <option value="Chemex"></option>
+                            <option value="Cold Brew"></option>
+                            <option value="Siphon"></option>
+                        </datalist>
+                    </div>
                 </div>
                 <br>
                 <div class="grid-3">
                     <div><label>Coffee (g)</label><input type="number" id="coffeeGrams" value="15" oninput="calcRatio()"></div>
-                    <div><label>Water (g)</label><input type="number" id="waterGrams" value="255" oninput="calcRatio()"></div>
-                    <div><label>Temp (°C)</label><input type="number" id="temp" value="93"></div>
+                    <div><label>Water (g)</label><input type="number" id="waterGrams" value="240" oninput="calcRatio()"></div>
+                    <div><label>Temp (°C)</label><input type="number" id="temp" placeholder="92"></div>
                 </div>
                 <br>
                 <div class="grid-2">
                     <div><label>Ratio 1 :</label><input type="text" id="ratioDisplay" readonly style="background:#eee; color:#666;"></div>
-                    <div><label>Grind</label><input type="text" id="grindSize" placeholder="e.g. 18 Clicks"></div>
+                    <div><label>Grind</label><input type="text" id="grindSize" placeholder="18 Clicks"></div>
                 </div>
             </div>
 
@@ -207,6 +220,7 @@
                         <label>Type</label>
                         <select id="stepType">
                             <option value="Pour">Pour</option><option value="Bloom">Bloom</option>
+                            <option value="Steep">Steep</option>
                             <option value="Agitate">Agitate</option><option value="Wait">Wait</option>
                             <option value="Drawdown">Drawdown</option><option value="Prep">Prep</option>
                         </select>
@@ -264,7 +278,7 @@
     </div>
 
     <div class="library-container">
-        <h2>📚 Coffee Log <small style="font-size:0.8rem; color:#888; font-weight:normal;">(Click card to edit)</small></h2>
+        <h2>📚 Coffee Log <small style="font-size:0.8rem; color:#888; font-weight:normal;">`</small></h2>
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Search beans, methods, or notes...">
         </div>
@@ -278,7 +292,7 @@
         import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // ⚠️ PASTE YOUR FIREBASE CONFIG BELOW ⚠️
+        // ⚠️ ⚠️ ⚠️ PASTE YOUR API KEY BELOW ⚠️ ⚠️ ⚠️
         const firebaseConfig = {
             apiKey: "PASTE_YOUR_API_KEY_HERE", 
             authDomain: "coffee-database-92533.firebaseapp.com",
@@ -295,8 +309,8 @@
         let steps = [];
         let allRecipes = [];
         let selectedColor = 'bg-blue';
-        let editingId = null;        // Recipe ID being edited
-        let editingStepIndex = null; // Step Index being edited (NEW)
+        let editingId = null;        
+        let editingStepIndex = null; 
 
         // 1. RATIO CALC
         window.calcRatio = function() {
@@ -328,18 +342,18 @@
                 type: document.getElementById('stepType').value,
                 label: document.getElementById('stepLabel').value || document.getElementById('stepType').value,
                 color: selectedColor,
-                startMin: sMin, startSec: sSec, endMin: eMin, endSec: eSec, // Store raw time for editing
+                startMin: sMin, startSec: sSec, endMin: eMin, endSec: eSec,
                 timeDisplay: timeStr,
                 weight: document.getElementById('stepWeight').value ? ` · ${document.getElementById('stepWeight').value}g` : '',
-                weightRaw: document.getElementById('stepWeight').value, // Store raw weight
+                weightRaw: document.getElementById('stepWeight').value, 
                 notes: document.getElementById('stepNotes').value
             };
 
             if (editingStepIndex !== null) {
                 // UPDATE EXISTING STEP (In Place)
                 steps[editingStepIndex] = stepData;
-                editingStepIndex = null; // Reset mode
-                resetStepForm(false); // Don't auto-chain when updating
+                editingStepIndex = null; 
+                resetStepForm(false); 
             } else {
                 // ADD NEW STEP
                 steps.push(stepData);
@@ -366,7 +380,6 @@
             document.getElementById('endMin').value = "";
             document.getElementById('endSec').value = "";
             
-            // Reset UI State
             document.getElementById('add-step-btn').textContent = "Add Step";
             document.getElementById('add-step-btn').classList.remove('updating');
             document.getElementById('step-card-title').textContent = "Add Step";
@@ -375,12 +388,11 @@
             editingStepIndex = null;
         }
 
-        // Cancel Step Edit Button
         document.getElementById('cancel-step-edit').addEventListener('click', function() {
             resetStepForm(false);
         });
 
-        // 4. RENDER BUILDER (Now with Edit Buttons)
+        // 4. RENDER BUILDER (With Edit Buttons)
         function renderBuilder() {
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
@@ -407,40 +419,35 @@
         // 5. EDIT STEP FUNCTION
         window.editStep = function(index) {
             const step = steps[index];
-            editingStepIndex = index; // Set global index
+            editingStepIndex = index; 
 
-            // Fill Form
             document.getElementById('stepType').value = step.type;
             document.getElementById('stepLabel').value = step.label;
             document.getElementById('stepWeight').value = step.weightRaw || "";
             document.getElementById('stepNotes').value = step.notes;
             
-            // Fill Time (Handle legacy data safely)
             document.getElementById('startMin').value = step.startMin || 0;
             document.getElementById('startSec').value = step.startSec || 0;
             document.getElementById('endMin').value = step.endMin || 0;
             document.getElementById('endSec').value = step.endSec || 0;
 
-            // Set Color
             selectedColor = step.color;
             document.querySelectorAll('.color-dot').forEach(d => {
                 d.classList.remove('selected');
                 if(d.getAttribute('data-color') === step.color) d.classList.add('selected');
             });
 
-            // UI Changes
             document.getElementById('add-step-btn').textContent = "Update Step";
             document.getElementById('add-step-btn').classList.add('updating');
             document.getElementById('step-card-title').textContent = "Editing Step " + (index + 1);
             document.getElementById('cancel-step-edit').style.display = 'inline-block';
             document.getElementById('step-form-card').classList.add('step-edit-active');
 
-            // Scroll to form
             document.getElementById('step-form-card').scrollIntoView({ behavior: 'smooth' });
         };
 
         window.removeStep = (idx) => { 
-            if(editingStepIndex === idx) resetStepForm(false); // If deleting active edit
+            if(editingStepIndex === idx) resetStepForm(false); 
             steps.splice(idx, 1); 
             renderBuilder(); 
         };
@@ -486,7 +493,7 @@
 
         function resetFullForm() {
             editingId = null;
-            resetStepForm(false); // Reset step form too
+            resetStepForm(false); 
             document.getElementById('recipeName').value = "";
             document.getElementById('beanName').value = "";
             document.getElementById('brewer').value = "";
@@ -497,7 +504,6 @@
             steps = []; 
             renderBuilder();
             
-            // Reset UI State
             document.getElementById('save-recipe-btn').textContent = "Save Recipe";
             document.getElementById('cancel-edit-btn').style.display = 'none';
             document.getElementById('details-card').classList.remove('edit-mode-active');
