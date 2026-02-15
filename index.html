@@ -32,7 +32,7 @@
         /* --- LAYOUT --- */
         .main-container {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
             align-items: start;
         }
@@ -265,6 +265,47 @@
                 <label>Notes</label><textarea id="stepNotes" rows="2"></textarea>
                 <button id="add-step-btn">Add Step</button>
             </div>
+
+            <!-- Coffee Beans Tracker -->
+            <div class="card" id="beans-tracker-card">
+                <div class="card-header">☕ Coffee Beans I've Tried</div>
+                <div style="margin-bottom: 15px;">
+                    <label>Bean Name</label>
+                    <input type="text" id="trackedBeanName" placeholder="e.g. Ethiopia Yirgacheffe" autocomplete="off">
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label>Origin</label>
+                        <input type="text" id="trackedOrigin" placeholder="e.g. Ethiopia" autocomplete="off">
+                    </div>
+                    <div>
+                        <label>Roaster</label>
+                        <input type="text" id="trackedRoaster" placeholder="e.g. Blue Bottle" autocomplete="off">
+                    </div>
+                </div>
+            
+                <div class="grid-2" style="align-items: center; margin-top: 15px;">
+                    <label style="margin:0;">Rating</label>
+                    <div class="star-rating">
+                        <input type="radio" id="bean-star5" name="bean-rating" value="5">
+                        <label for="bean-star5">★</label>
+                        <input type="radio" id="bean-star4" name="bean-rating" value="4">
+                        <label for="bean-star4">★</label>
+                        <input type="radio" id="bean-star3" name="bean-rating" value="3">
+                        <label for="bean-star3">★</label>
+                        <input type="radio" id="bean-star2" name="bean-rating" value="2">
+                        <label for="bean-star2">★</label>
+                        <input type="radio" id="bean-star1" name="bean-rating" value="1">
+                        <label for="bean-star1">★</label>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>Notes</label>
+                    <textarea id="trackedNotes" rows="2" placeholder="Your thoughts on this bean..."></textarea>
+                </div>
+                <button id="add-bean-btn" style="width: 100%; background: #333; color: white; padding: 12px; margin-top: 15px;">Add Bean</button>
+                <button id="cancel-bean-edit" style="background: none; color: #888; text-decoration: underline; font-size: 0.8rem; cursor: pointer; display: none; width: 100%; margin-top: 5px;">Cancel</button>
+            </div>
         </div>
 
         <div class="right-col">
@@ -287,13 +328,23 @@
         </div>
     </div>
 
+    <div class="library-container">
+        <h2>☕ My Beans Collection</h2>
+        <div class="search-container">
+            <input type="text" id="searchBeansInput" placeholder="Search beans by name, origin, or roaster...">
+        </div>
+        <div id="beans-library-grid" class="library-grid">
+            <div style="color:#666;">Loading beans...</div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // ⚠️ ⚠️ ⚠️ PASTE YOUR API KEY BELOW ⚠️ ⚠️ ⚠️
-        const firebaseConfig = {
+            const firebaseConfig = {
             apiKey: "PASTE_YOUR_API_KEY_HERE", 
             authDomain: "coffee-database-92533.firebaseapp.com",
             projectId: "coffee-database-92533",
@@ -308,9 +359,11 @@
         // --- GLOBAL STATE ---
         let steps = [];
         let allRecipes = [];
+        let allBeans = [];
         let selectedColor = 'bg-blue';
         let editingId = null;        
-        let editingStepIndex = null; 
+        let editingStepIndex = null;
+        let editingBeanId = null; 
 
         // 1. RATIO CALC
         window.calcRatio = function() {
@@ -451,6 +504,152 @@
             steps.splice(idx, 1); 
             renderBuilder(); 
         };
+
+        // 5B. BEANS TRACKER
+        document.getElementById('add-bean-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('add-bean-btn');
+            const originalText = btn.textContent;
+            
+            const beanName = document.getElementById('trackedBeanName').value.trim();
+            if (!beanName) {
+                alert('Please enter a bean name');
+                return;
+            }
+
+            btn.textContent = editingBeanId ? "Updating..." : "Saving...";
+            
+            const ratingEl = document.querySelector('input[name="bean-rating"]:checked');
+            const ratingVal = ratingEl ? Number(ratingEl.value) : 0;
+
+            const beanData = {
+                name: beanName,
+                origin: document.getElementById('trackedOrigin').value.trim() || "",
+                roaster: document.getElementById('trackedRoaster').value.trim() || "",
+                notes: document.getElementById('trackedNotes').value.trim() || "",
+                rating: ratingVal,
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                if (editingBeanId) {
+                    await setDoc(doc(db, "beans", editingBeanId), beanData);
+                } else {
+                    await addDoc(collection(db, "beans"), beanData);
+                }
+                resetBeanForm();
+                btn.textContent = originalText;
+            } catch(e) {
+                alert("Save Error: " + e.message);
+                btn.textContent = originalText;
+            }
+        });
+
+        document.getElementById('cancel-bean-edit').addEventListener('click', resetBeanForm);
+
+        function resetBeanForm() {
+            editingBeanId = null;
+            document.getElementById('trackedBeanName').value = "";
+            document.getElementById('trackedOrigin').value = "";
+            document.getElementById('trackedRoaster').value = "";
+            document.getElementById('trackedNotes').value = "";
+            
+            const ratingEl = document.querySelector('input[name="bean-rating"]:checked');
+            if(ratingEl) ratingEl.checked = false;
+            
+            document.getElementById('add-bean-btn').textContent = "Add Bean";
+            document.getElementById('cancel-bean-edit').style.display = 'none';
+            document.getElementById('beans-tracker-card').classList.remove('step-edit-active');
+        }
+
+        window.editBean = function(id) {
+            const bean = allBeans.find(b => b.id === id);
+            if (!bean) return;
+
+            document.getElementById('trackedBeanName').value = bean.name || "";
+            document.getElementById('trackedOrigin').value = bean.origin || "";
+            document.getElementById('trackedRoaster').value = bean.roaster || "";
+            document.getElementById('trackedNotes').value = bean.notes || "";
+
+            const stars = document.querySelectorAll('input[name="bean-rating"]');
+            stars.forEach(s => s.checked = false);
+            if(bean.rating) {
+                const radio = document.querySelector(`input[name="bean-rating"][value="${bean.rating}"]`);
+                if(radio) radio.checked = true;
+            }
+
+            editingBeanId = id;
+            document.getElementById('add-bean-btn').textContent = "Update Bean";
+            document.getElementById('cancel-bean-edit').style.display = 'inline-block';
+            document.getElementById('beans-tracker-card').classList.add('step-edit-active');
+            document.getElementById('beans-tracker-card').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.deleteBean = async (id) => {
+            if(confirm("Delete this bean from your collection?")) {
+                await deleteDoc(doc(db, "beans", id));
+                if(editingBeanId === id) resetBeanForm();
+            }
+        };
+
+        // BEANS LIBRARY RENDERING
+        const beansQuery = query(collection(db, "beans"), orderBy("timestamp", "desc"));
+
+        onSnapshot(beansQuery, (snapshot) => {
+            allBeans = []; 
+            snapshot.forEach(doc => {
+                allBeans.push({ id: doc.id, ...doc.data() });
+            });
+            renderBeansLibrary(allBeans);
+        });
+
+        function renderBeansLibrary(beansToRender) {
+            const grid = document.getElementById('beans-library-grid');
+            grid.innerHTML = "";
+            
+            if(beansToRender.length === 0) {
+                grid.innerHTML = "<div style='color:#ccc; text-align:center;'>No beans tracked yet. Add your first coffee bean above!</div>";
+                return;
+            }
+
+            beansToRender.forEach(bean => {
+                const stars = "★".repeat(bean.rating || 0) + "☆".repeat(5 - (bean.rating || 0));
+                
+                const card = document.createElement('div');
+                card.className = "saved-recipe-card";
+                card.onclick = (e) => {
+                    if(!e.target.classList.contains('delete-recipe-btn')) editBean(bean.id);
+                };
+
+                const roasterTag = bean.roaster ? `<span class="tag">${bean.roaster}</span>` : '';
+                const originTag = bean.origin ? `<span class="tag">${bean.origin}</span>` : '';
+
+                card.innerHTML = `
+                    <div class="saved-header">
+                        <div style="display:flex; justify-content:space-between;">
+                            <h3>${bean.name}</h3>
+                            <span class="card-rating">${stars}</span>
+                        </div>
+                        ${bean.origin || bean.roaster ? '<div class="saved-meta">' + (bean.origin || '') + (bean.origin && bean.roaster ? ' • ' : '') + (bean.roaster || '') + '</div>' : ''}
+                        <button class="delete-recipe-btn" onclick="deleteBean('${bean.id}')">×</button>
+                    </div>
+                    ${bean.origin || bean.roaster ? '<div class="saved-tags">' + originTag + roasterTag + '</div>' : ''}
+                    ${bean.notes ? '<div style="font-size:0.85rem; color:#666; margin-top:10px; font-style:italic;">"' + bean.notes + '"</div>' : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Beans Search Filter
+        document.getElementById('searchBeansInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allBeans.filter(b => 
+                (b.name && b.name.toLowerCase().includes(term)) ||
+                (b.origin && b.origin.toLowerCase().includes(term)) ||
+                (b.roaster && b.roaster.toLowerCase().includes(term)) ||
+                (b.notes && b.notes.toLowerCase().includes(term))
+            );
+            renderBeansLibrary(filtered);
+        });
 
         // 6. SAVE RECIPE
         document.getElementById('save-recipe-btn').addEventListener('click', async () => {
